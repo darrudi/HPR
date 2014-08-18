@@ -332,7 +332,7 @@ public class SemanticReasoner
 				answer.AddJustification(_pathHistory.GetReasoningLines());
 				_pathHistory.popReasoningLine(1);
 				
-				log("*" + composeMessage(statement + "\t" + answer.parameters, Function));
+				log("*" + composeReasoningLine(statement + "\t" + answer.parameters, Function));
 
 				answers.add(answer);
 			}
@@ -359,7 +359,7 @@ public class SemanticReasoner
 				answer.AddJustification(_pathHistory.GetReasoningLines());
 				_pathHistory.popReasoningLine(1);
 				
-				log("*" + composeMessage(statement + "\t" + answer.parameters, Function));
+				log("*" + composeReasoningLine(statement + "\t" + answer.parameters, Function));
 
 				answers.add(answer);
 			}
@@ -418,28 +418,40 @@ public class SemanticReasoner
 					Yes.AddJustification(_pathHistory.GetReasoningLines());
 					
 					_pathHistory.popReasoningLine(1);
-					log("*" + composeMessage(statement + "\t" + Yes.parameters, Function));
+					log("*" + composeReasoningLine(statement + "\t" + Yes.parameters, Function));
 
 					answers.add(Yes);
 				}
 			}
 		}
 		
-		// We couldn't find the answer directly. Now we have to reason to find it:
-
-		// All nested inferences backtrack if the following condition is met. 
-		if (_reasoningDepth == _maxReasoningDepth)
+		
+		if (_reasoningDepth >= _maxReasoningDepth)
 		{
 			// It's exceeded the Max. Reasoning Depth
 			
 			totalBackTracks++;
 			
-			log(composeMessage("BACKTRACK (useless inference call)", Function));
+			log(composeReasoningLine("BACKTRACK (useless inference call)", Function));
 			
 			InferenceEpilogue(pq, Function);
 			
 			return answers;
 		}
+		
+		if (answers.size() >= _maxAnswersNumber)
+		{
+			// we found enough answers! no need to continue.
+			
+			log(composeReasoningLine("BACKTRACK (found enough answers)", Function));
+			
+			InferenceEpilogue(pq, Function);
+			
+			return answers;
+		}	
+				
+		
+		// We couldn't find the answer directly. Now we have to reason to find it:
 
 		if (referent == null)
 		{
@@ -534,11 +546,11 @@ public class SemanticReasoner
 			Do(Disambiguation(pq), answers);			
 		}
 
-		answers = CombineEvidences(answers, Function, pq);
+		answers = combineEvidences(answers, Function, pq);
 				
 		InferenceEpilogue(pq, Function);
 		
-		log(composeMessage("RETURN", Function));
+		log(composeReasoningLine("RETURN", Function));
 
 		return answers;
 	}
@@ -625,7 +637,7 @@ public class SemanticReasoner
 					pa.AddJustification(_pathHistory.GetReasoningLines());
 					_pathHistory.popReasoningLine(1);
 					
-					log("*" + composeMessage(Question + "\t" + pa.parameters, Function));
+					log("*" + composeReasoningLine(Question + "\t" + pa.parameters, Function));
 
 					Answers.add(pa);
 					
@@ -644,7 +656,7 @@ public class SemanticReasoner
 					Yes.AddJustification(_pathHistory.GetReasoningLines());
 					
 					_pathHistory.popReasoningLine(1);
-					log("*" + composeMessage(Question + "\t" + Yes.parameters, Function));
+					log("*" + composeReasoningLine(Question + "\t" + Yes.parameters, Function));
 
 					Answers.add(Yes);
 				}
@@ -864,7 +876,7 @@ public class SemanticReasoner
 		hierarchicalAnswers = FindHierarchicalNodes(ActiveConcept, Direction);
 		
 		if (hierarchicalAnswers.size() > 0)
-			log(composeMessage("'" + hierarchicalAnswers.size() + "' Hierarchical relations for " + ActiveConcept.getName(), Function));
+			log(composeReasoningLine("'" + hierarchicalAnswers.size() + "' Hierarchical relations for " + ActiveConcept.getName(), Function));
 
 		if (IsEmpty(hierarchicalAnswers))
 		{
@@ -923,7 +935,7 @@ public class SemanticReasoner
 			hierarchicalReference = composeReference(hierarchicalAnswer.statement);
 
 			Counter++;
-			log(composeMessage(Counter + ") " + hierarchicalStatement, Function));
+			log(composeReasoningLine(Counter + ") " + hierarchicalStatement, Function));
 		
 			DEPText = "";
 			
@@ -939,12 +951,12 @@ public class SemanticReasoner
 
 				if (eliteContext == null)
 				{
-					log(composeMessage("! Failed to verify that " + DEPText, Function));
+					log(composeReasoningLine("! Failed to verify that " + DEPText, Function));
 					DependencyIntensity = MIN_DEPENDENCY_INTENSITY;
 				}
 				else
 				{
-					log(composeMessage(DEPText.toString(), Function));
+					log(composeReasoningLine(DEPText.toString(), Function));
 					DependencyIntensity = eliteContext.parameters.certainty;
 				}
 			}
@@ -1016,7 +1028,7 @@ public class SemanticReasoner
 			}
 		}
 
-		Answers = CombineEvidences(Answers, Function, pq);
+		Answers = combineEvidences(Answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -1253,7 +1265,7 @@ public class SemanticReasoner
 				newPQ[0].descriptor = newConcept;
 
 				reasoningLine[0] = pq.descriptor.getName() + " AMBIGUATES TO " + newConcept.getName();				
-				log(composeMessage(pq.descriptor.getName() + " --> " + newConcept.getName(), Function));
+				log(composeReasoningLine(pq.descriptor.getName() + " --> " + newConcept.getName(), Function));
 			}
 		}
 		
@@ -1269,7 +1281,7 @@ public class SemanticReasoner
 				newPQ[1].argument = newConcept;
 				
 				reasoningLine[1] = pq.argument.getName() + " AMBIGUATES TO " + newConcept.getName();				
-				log(composeMessage(pq.argument.getName() + " --> " + newConcept.getName(), Function));
+				log(composeReasoningLine(pq.argument.getName() + " --> " + newConcept.getName(), Function));
 			}
 		}
 		
@@ -1285,7 +1297,7 @@ public class SemanticReasoner
 				newPQ[2].referent = newConcept;
 				
 				reasoningLine[2] = pq.referent.getName() + " AMBIGUATES TO " + newConcept.getName();				
-				log(composeMessage(pq.referent.getName() + " --> " + newConcept.getName(), Function));
+				log(composeReasoningLine(pq.referent.getName() + " --> " + newConcept.getName(), Function));
 			}
 		}
 		
@@ -1319,7 +1331,7 @@ public class SemanticReasoner
 			}
 		}
 		
-		answers = CombineEvidences(answers, Function, pq);
+		answers = combineEvidences(answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 		
@@ -1387,7 +1399,7 @@ public class SemanticReasoner
 				newPQ[pqNum].parameters.certainty = synset.parameters.certainty;
 
 				reasoningLine[pqNum] = pq.descriptor.getName() + " DISAMBIGUATES TO " + synset.answer.getName();				
-				log(composeMessage(pq.descriptor.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
+				log(composeReasoningLine(pq.descriptor.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
 				
 				pqNum++;
 			}
@@ -1405,7 +1417,7 @@ public class SemanticReasoner
 				newPQ[pqNum].parameters.certainty = synset.parameters.certainty;
 
 				reasoningLine[pqNum] = pq.argument.getName() + " DISAMBIGUATES TO " + synset.answer.getName();				
-				log(composeMessage(pq.argument.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
+				log(composeReasoningLine(pq.argument.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
 				
 				pqNum++;
 			}
@@ -1435,7 +1447,7 @@ public class SemanticReasoner
 				newPQ[pqNum].parameters.certainty = synset.parameters.certainty;
 
 				reasoningLine[pqNum] = pq.referent.getName() + " DISAMBIGUATES TO " + synset.answer.getName();				
-				log(composeMessage(pq.referent.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
+				log(composeReasoningLine(pq.referent.getName() + " --> " + synset.answer.getName() + " " + synset.parameters.toString(), Function));
 				
 				pqNum++;
 			}
@@ -1471,7 +1483,7 @@ public class SemanticReasoner
 			}
 		}
 		
-		answers = CombineEvidences(answers, Function, pq);
+		answers = combineEvidences(answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 		
@@ -1522,7 +1534,7 @@ public class SemanticReasoner
 				Synset = Synsets.get(0);
 				AL.add(Synset);
 				
-				log(composeMessage("Found synset: " + Synset.answer.getName(), Function));
+				log(composeReasoningLine("Found synset: " + Synset.answer.getName(), Function));
 			}
 		}
 		
@@ -1535,7 +1547,7 @@ public class SemanticReasoner
 			
 			for (PlausibleAnswer pa: Synonyms)
 			{
-				log(composeMessage("-" + pa.answer.getName(), Function));
+				log(composeReasoningLine("-" + pa.answer.getName(), Function));
 			}
 		}
 		
@@ -1589,7 +1601,7 @@ public class SemanticReasoner
 			}
 		}
 
-		Answers = CombineEvidences(Answers, Function, pq);
+		Answers = combineEvidences(Answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -1615,7 +1627,7 @@ public class SemanticReasoner
 		Do(DDEPP(pq), Answers);
 		Do(DDEPN(pq), Answers);
 
-		Answers = CombineEvidences(Answers, Function, pq);
+		Answers = combineEvidences(Answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -1663,7 +1675,7 @@ public class SemanticReasoner
 
 		String Question = ComposeStatement(pq);
 		
-		log(ComposeMessage(Question , Function, true));
+		log(composeReasoningLine(Question , Function, true));
 
 		ArrayList<PlausibleAnswer> AL = null;
 		//ArrayList ALTemp = null;
@@ -1674,7 +1686,7 @@ public class SemanticReasoner
 		AL = pq.descriptor.findSourceNodes(Relation);
 
 		if (AL.size() > 0)
-			log(composeMessage("'" + AL.size() + "' " + RelationName + " dependency relations were found.", Function));
+			log(composeReasoningLine("'" + AL.size() + "' " + RelationName + " dependency relations were found.", Function));
 
 		if (IsEmpty(AL))
 		{
@@ -1702,7 +1714,7 @@ public class SemanticReasoner
 			ImpressorAnswer	= (PlausibleAnswer)obj;
 			ImpressorNode	= ImpressorAnswer.answer;
 
-			log(composeMessage(ImpressorNode.getName() + " -- " + RelationName + " --> " + pq.descriptor.getName(), Function));
+			log(composeReasoningLine(ImpressorNode.getName() + " -- " + RelationName + " --> " + pq.descriptor.getName(), Function));
 
 			String reference = composeReference(ImpressorAnswer.statement);
 
@@ -1727,7 +1739,7 @@ public class SemanticReasoner
 						AntonymNode = ReasonedAnswer.answer.getAntonym();
 						if (AntonymNode == null)
 						{
-							log(composeMessage("No antonym for " + ReasonedAnswer.answer.getName() + "!", Function));
+							log(composeReasoningLine("No antonym for " + ReasonedAnswer.answer.getName() + "!", Function));
 							continue;
 						}
 						
@@ -1795,7 +1807,7 @@ public class SemanticReasoner
 		// Here we may have more than an answer in ReasonigAL.
 		// So we have to rank them and choose the best one.
 		//Answers = CombineEvidences(TempAL2, Function, DESCRIPTOR, argument, null);
-		Answers = CombineEvidences(TempAL2, Function, pq);
+		Answers = combineEvidences(TempAL2, Function, pq);
 
 		return Answers;
 	}
@@ -1913,7 +1925,7 @@ public class SemanticReasoner
 		if (IsEmpty(DependenciesLevel1))
 		{
 			// no dependency at all!
-			log(composeMessage("'0' " + " Thers is no Dependency of conceptType '" + DepType + "' for '" + Descriptor.getName() + "'.", Function));
+			log(composeReasoningLine("'0' " + " Thers is no Dependency of conceptType '" + DepType + "' for '" + Descriptor.getName() + "'.", Function));
 
 			InferenceEpilogue(pq, Function);
 			return null;
@@ -1950,7 +1962,7 @@ public class SemanticReasoner
 				AnswerLevel2.dependencyType = TDEPCombineDependencyTypes(AnswerLevel1.dependencyType, AnswerLevel2.dependencyType);
 				AnswerLevel2.parameters = TDEPCombineParameters(AnswerLevel1.parameters, AnswerLevel2.parameters);
 
-				log(composeMessage(AnswerLevel2.answer.getName() + " -- DEP(via " + AnswerLevel1.answer.getName() + ") --> " + Descriptor.getName() + "\t" + AnswerLevel2.parameters, Function));
+				log(composeReasoningLine(AnswerLevel2.answer.getName() + " -- DEP(via " + AnswerLevel1.answer.getName() + ") --> " + Descriptor.getName() + "\t" + AnswerLevel2.parameters, Function));
 
 				Dependencies.add(AnswerLevel2);
 
@@ -2008,7 +2020,7 @@ public class SemanticReasoner
 		if (IsEmpty(TransitiveRelationsLevel1))
 		{
 			// no dependency at all!
-			log(composeMessage("Thers is no transitive '" + Relation.getName() + "' relations for '" + Descriptor.getName() + "'.", Function));
+			log(composeReasoningLine("Thers is no transitive '" + Relation.getName() + "' relations for '" + Descriptor.getName() + "'.", Function));
 
 			InferenceEpilogue(pq, Function);
 			return null;
@@ -2053,7 +2065,7 @@ public class SemanticReasoner
 
 		if (IsEmpty(TransitiveNodes))
 		{
-			log(composeMessage("There isn't any Transitive dependency for '" + Descriptor.getName() + "'.", Function));
+			log(composeReasoningLine("There isn't any Transitive dependency for '" + Descriptor.getName() + "'.", Function));
 		}
 
 		InferenceEpilogue(pq, Function);
@@ -2120,16 +2132,16 @@ public class SemanticReasoner
 			return null;
 		}
 		
-		log(composeMessage("'" + ImpressorsList.size() + "' direct impressors were found.", Function));
+		log(composeReasoningLine("'" + ImpressorsList.size() + "' direct impressors were found.", Function));
 		
 		int Counter = 0;
 		for (PlausibleAnswer Impressor: ImpressorsList)
 		{
 			Counter++;
-			log(composeMessage(Counter + ") " + Impressor.answer.getName() , Function));
+			log(composeReasoningLine(Counter + ") " + Impressor.answer.getName() , Function));
 		}
 		
-		log(composeMessage("Finding indirect impressors using the TDEP inference..." , Function));
+		log(composeReasoningLine("Finding indirect impressors using the TDEP inference..." , Function));
 		// Finding indirect impressors using the TDEP inference:
 		TDEPImpressorsList = TDEP(Descriptor, DependencyType.ANY);
 
@@ -2138,7 +2150,7 @@ public class SemanticReasoner
 			TDEPImpressorsList = new ArrayList<PlausibleAnswer>();
 		}
 		
-		log(composeMessage("'" + TDEPImpressorsList.size() + "' indirect impressors were found.", Function));			
+		log(composeReasoningLine("'" + TDEPImpressorsList.size() + "' indirect impressors were found.", Function));			
 		
 		ImpressorsList.addAll(TDEPImpressorsList);
 		
@@ -2151,7 +2163,7 @@ public class SemanticReasoner
 			AL = AdjustYesNoAnswers(AL, Referent);
 		}
 
-		AL = CombineEvidences(AL, Function, pq);
+		AL = combineEvidences(AL, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -2213,7 +2225,7 @@ public class SemanticReasoner
 			Impressor = (PlausibleAnswer)obj;
 			ImpressorNode = Impressor.answer;
 
-			log(composeMessage(ImpressorCounter + ") " + ImpressorNode.getName() + " -- DEPX --> " + Descriptor.getName(), Function));
+			log(composeReasoningLine(ImpressorCounter + ") " + ImpressorNode.getName() + " -- DEPX --> " + Descriptor.getName(), Function));
 			
 			// 4:
 			newPQ = pq.clone();
@@ -2224,7 +2236,7 @@ public class SemanticReasoner
 
 			if (IsEmpty(PrimaryReferentsList))
 			{
-				log(composeMessage("No primary referents for rule " + ImpressorCounter, Function));
+				log(composeReasoningLine("No primary referents for rule " + ImpressorCounter, Function));
 				continue;
 			}
 
@@ -2244,7 +2256,7 @@ public class SemanticReasoner
 
 				if (IsEmpty(SecondaryArgumentsList))
 				{
-					log(composeMessage("No secondary arguments for rule " + ImpressorCounter, Function));
+					log(composeReasoningLine("No secondary arguments for rule " + ImpressorCounter, Function));
 					continue;
 				}
 
@@ -2258,13 +2270,13 @@ public class SemanticReasoner
 					// Then I can remove the following line
 					if (SecondaryArgumentNode == Argument)
 					{
-						log(composeMessage("Secondary arguments mismatch for rule " + ImpressorCounter, Function));
+						log(composeReasoningLine("Secondary arguments mismatch for rule " + ImpressorCounter, Function));
 						continue;
 					}
 
 					if (SecondaryArgument.isNegative)
 					{
-						log(composeMessage("Inappropriate secondary argument " + ImpressorCounter, Function));
+						log(composeReasoningLine("Inappropriate secondary argument " + ImpressorCounter, Function));
 						continue;
 					}
 
@@ -2290,7 +2302,7 @@ public class SemanticReasoner
 
 					if (IsEmpty(SecondaryReferentsList))
 					{
-						log(composeMessage("No secondary referents for impressor number " + ImpressorCounter, Function));
+						log(composeReasoningLine("No secondary referents for impressor number " + ImpressorCounter, Function));
 						continue;
 					}
 
@@ -2346,7 +2358,7 @@ public class SemanticReasoner
 			Answers.addAll(Answers2);
 		}
 
-		Answers = CombineEvidences(Answers, Function, pq);
+		Answers = combineEvidences(Answers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -2399,7 +2411,7 @@ public class SemanticReasoner
 		ConsequentStatements = getStatements(Descriptor, ConditionalType.CONSEQUENT);
 
 		if (ConsequentStatements.size() > 0)
-			log(composeMessage("'" + ConsequentStatements.size() + "' Rule(s) were found for " + Descriptor.getName(), Function));
+			log(composeReasoningLine("'" + ConsequentStatements.size() + "' Rule(s) were found for " + Descriptor.getName(), Function));
 		
 		for (Object obj: ConsequentStatements)
 		{
@@ -2428,7 +2440,7 @@ public class SemanticReasoner
 							" *THEN* " + 
 							ComposePlausibleQuestion(ConsequentDescriptor, ConsequentArgument, ConsequentReferent, false);
 				
-				log(composeMessage("Rule '" + RuleCount + "': " + RuleText + "\t" + ImplicationStatement.parameters, Function));
+				log(composeReasoningLine("Rule '" + RuleCount + "': " + RuleText + "\t" + ImplicationStatement.parameters, Function));
 
 				String reference = composeReference(ImplicationStatement);
 				
@@ -2462,7 +2474,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(FinalAnswer.answer, ConsequentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2470,7 +2482,7 @@ public class SemanticReasoner
 
 						if (Referent != ConsequentReferent)
 						{
-							log(composeMessage("Unsatisfied consequent in the rule.", Function));
+							log(composeReasoningLine("Unsatisfied consequent in the rule.", Function));
 							continue;								
 						}
 
@@ -2485,7 +2497,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(Argument, ConsequentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2504,7 +2516,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(Argument, ConsequentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + ConsequentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2548,18 +2560,18 @@ public class SemanticReasoner
 		}
 		else
 		{
-			log(composeMessage("'" + PartialIMPAnswers.size() + "' direct 'IMP' Relations for " + Descriptor.getName(), Function));
+			log(composeReasoningLine("'" + PartialIMPAnswers.size() + "' direct 'IMP' Relations for " + Descriptor.getName(), Function));
 		}
 
 		ArrayList<PlausibleAnswer> TransitivePartialIMPAnswers = TDEP(Descriptor, KnowledgeBase.HPR_IMP);
 
 		if (IsEmpty(TransitivePartialIMPAnswers))
 		{
-			log(composeMessage("No transitive 'IMP' Relations for " + Descriptor.getName(), Function));
+			log(composeReasoningLine("No transitive 'IMP' Relations for " + Descriptor.getName(), Function));
 		}
 		else
 		{
-			log(composeMessage("'" + TransitivePartialIMPAnswers.size() + "' indirect 'IMP' Relations for " + Descriptor.getName(), Function));
+			log(composeReasoningLine("'" + TransitivePartialIMPAnswers.size() + "' indirect 'IMP' Relations for " + Descriptor.getName(), Function));
 
 			PartialIMPAnswers.addAll(TransitivePartialIMPAnswers);
 		}
@@ -2576,7 +2588,7 @@ public class SemanticReasoner
 			PartialIMPCounter++;
 
 			PartialIMPRelation = PartialIMPAnswer.answer.getName() + " IMPLIES " + Descriptor.getName();
-			log(composeMessage(PartialIMPCounter + ") " + PartialIMPRelation, Function));
+			log(composeReasoningLine(PartialIMPCounter + ") " + PartialIMPRelation, Function));
 
 			String reference = composeReference(PartialIMPAnswer.statement);
 			
@@ -2659,7 +2671,7 @@ public class SemanticReasoner
 		// Retrieving all ANTECEDENT statements having DESCRIPTOR in their relationType:
 		AntecedentStatements = getStatements(DESCRIPTOR, ConditionalType.ANTECEDENT);
 
-		log(composeMessage("'" + AntecedentStatements.size() + "' Rule(s) were found for " + DESCRIPTOR.getName(), Function));
+		log(composeReasoningLine("'" + AntecedentStatements.size() + "' Rule(s) were found for " + DESCRIPTOR.getName(), Function));
 		
 		for (Object obj: AntecedentStatements)
 		{
@@ -2688,7 +2700,7 @@ public class SemanticReasoner
 					" *THEN* " + 
 					ComposePlausibleQuestion(ConsequentDescriptor, ConsequentArgument, ConsequentReferent, false);
 				
-				log(composeMessage("Rule '" + RuleCount + "': " + RuleText + "\t" + ImplicationStatement.parameters, Function));
+				log(composeReasoningLine("Rule '" + RuleCount + "': " + RuleText + "\t" + ImplicationStatement.parameters, Function));
 				
 				String reference = composeReference(ImplicationStatement);
 				
@@ -2722,7 +2734,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(FinalAnswer.answer, AntecedentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2730,7 +2742,7 @@ public class SemanticReasoner
 
 						if (referent != AntecedentReferent)
 						{
-							log(composeMessage("Unsatisfied CONSEQUENT in the rule.", Function));
+							log(composeReasoningLine("Unsatisfied CONSEQUENT in the rule.", Function));
 							continue;								
 						}
 
@@ -2745,7 +2757,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(argument, AntecedentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2764,7 +2776,7 @@ public class SemanticReasoner
 						KindOfRelation = IsAKindOf(argument, AntecedentArgument);
 						if (KindOfRelation == null)
 						{
-							log(composeMessage(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
+							log(composeReasoningLine(FinalAnswer.answer.getName() + " IS NOT A " + AntecedentArgument.getName(), Function));
 							continue;
 						}
 
@@ -2782,7 +2794,7 @@ public class SemanticReasoner
 			}
 		}
 
-		AL = CombineEvidences(AL, Function, pq);
+		AL = combineEvidences(AL, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -2804,7 +2816,7 @@ public class SemanticReasoner
 		_reasoningDepth++;
 
 		String Question = "ISA(" + Child.getName() + ")={" + WantedParent.getName() + "}?";			
-		log(ComposeMessage(Question, "ISKIND", true));
+		log(composeReasoningLine(Question, "ISKIND", true));
 
 		if (Child == WantedParent)
 		{
@@ -2812,7 +2824,7 @@ public class SemanticReasoner
 			PA.answer = Child;
 			PA.parameters.certainty = CertaintyParameters.defaultCertainty;
 
-			log(composeMessage(Question + "\tYes\t" + PA.parameters, "ISKIND")); 
+			log(composeReasoningLine(Question + "\tYes\t" + PA.parameters, "ISKIND")); 
 			_reasoningDepth--;
 			return PA;
 		}
@@ -2829,7 +2841,7 @@ public class SemanticReasoner
 			if (ParentAnswer.answer == WantedParent)
 			{
 				// Parameters have been initialized before in FindHierarchicalNodes-FindTargetNodes
-				log(composeMessage(Question + "\tYes\t" + ParentAnswer.parameters, "ISKIND")); 
+				log(composeReasoningLine(Question + "\tYes\t" + ParentAnswer.parameters, "ISKIND")); 
 				_reasoningDepth--;
 				return ParentAnswer;	
 			}
@@ -2840,20 +2852,20 @@ public class SemanticReasoner
 				if (GrandFatherAnswer == null)
 				{
 					_reasoningDepth--;
-					log(composeMessage(Question + "\tNo", "ISKIND")); 
+					log(composeReasoningLine(Question + "\tNo", "ISKIND")); 
 					return null;
 				}
 				
 				GrandFatherAnswer.parameters.certainty = GrandFatherAnswer.parameters.certainty*ParentAnswer.parameters.certainty;
 				GrandFatherAnswer.parameters.dominance = GrandFatherAnswer.parameters.dominance*ParentAnswer.parameters.dominance;
 						
-				log(composeMessage(Question + "\tYes\t" + GrandFatherAnswer.parameters, "ISKIND")); 
+				log(composeReasoningLine(Question + "\tYes\t" + GrandFatherAnswer.parameters, "ISKIND")); 
 				_reasoningDepth--;
 				return GrandFatherAnswer;
 			}
 		}
 	
-		log(composeMessage(Question + "\tNo", "ISKIND")); 
+		log(composeReasoningLine(Question + "\tNo", "ISKIND")); 
 		_reasoningDepth--;
 		return null;
 	}
@@ -3225,7 +3237,7 @@ public class SemanticReasoner
 		{
 			if (descriptor.getPos() != POS.NOUN)
 			{
-				log(composeMessage("DESCRIPTOR is not a noun!", Function));
+				log(composeReasoningLine("DESCRIPTOR is not a noun!", Function));
 
 				InferenceEpilogue(pq, Function);
 				return null;	
@@ -3235,7 +3247,7 @@ public class SemanticReasoner
 
 			if (IsEmpty(Attributes))
 			{
-				log(composeMessage("No attributes for '" + descriptor + "'.", Function));
+				log(composeReasoningLine("No attributes for '" + descriptor + "'.", Function));
 
 				InferenceEpilogue(pq, Function);
 				return null;
@@ -3254,7 +3266,7 @@ public class SemanticReasoner
 				for (PlausibleAnswer Attribute: Attributes)
 				{
 					AttCounter++;
-					log(composeMessage(AttCounter + ") " + descriptor.getName() + " ATTRIBUTES " + Attribute.answer.getName(), Function));				
+					log(composeReasoningLine(AttCounter + ") " + descriptor.getName() + " ATTRIBUTES " + Attribute.answer.getName(), Function));				
 
 					if (Attribute.answer == referent)
 					{
@@ -3265,7 +3277,7 @@ public class SemanticReasoner
 
 				if (AttributeMatched == null)
 				{
-					log(composeMessage("referent '" + referent.getName() + " is not in the attribute list of '" + descriptor.getName() + "'.", Function));
+					log(composeReasoningLine("referent '" + referent.getName() + " is not in the attribute list of '" + descriptor.getName() + "'.", Function));
 				
 					InferenceEpilogue(pq, Function);
 					return null;
@@ -3283,7 +3295,7 @@ public class SemanticReasoner
 
 				if (IsEmpty(Answers))
 				{
-					log(composeMessage("No answer!", Function));
+					log(composeReasoningLine("No answer!", Function));
 				
 					InferenceEpilogue(pq, Function);
 					return null;
@@ -3313,7 +3325,7 @@ public class SemanticReasoner
 				for (PlausibleAnswer Attribute: Attributes)
 				{
 					AttCounter++;
-					log(composeMessage(AttCounter + ") " + descriptor.getName() + " ATTRIBUTES " + Attribute.answer.getName(), Function));
+					log(composeReasoningLine(AttCounter + ") " + descriptor.getName() + " ATTRIBUTES " + Attribute.answer.getName(), Function));
 					
 					String reference = composeReference(Attribute.statement);
 
@@ -3330,7 +3342,7 @@ public class SemanticReasoner
 
 					if (IsEmpty(Answers))
 					{
-						log(composeMessage("Unsupported Attribute!", Function));
+						log(composeReasoningLine("Unsupported Attribute!", Function));
 						continue;
 					}
 
@@ -3347,7 +3359,7 @@ public class SemanticReasoner
 		
 		//ArrayList NounAttributes = DESCRIPTOR.Find			
 			
-		FinalAnswers = CombineEvidences(FinalAnswers, Function, pq);
+		FinalAnswers = combineEvidences(FinalAnswers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 		return FinalAnswers;
@@ -3382,7 +3394,7 @@ public class SemanticReasoner
 		}
 		else
 		{
-			log(composeMessage("'" + APConcepts.size() + "' inverse relations were found for " + Descriptor.getName(), Function));
+			log(composeReasoningLine("'" + APConcepts.size() + "' inverse relations were found for " + Descriptor.getName(), Function));
 		}
 		
 		String RelationText;
@@ -3400,7 +3412,7 @@ public class SemanticReasoner
 			
 			RelationText = Descriptor.getName() + " " + KnowledgeBase.HPR_INVERSE.getName() + " " + APConcept.answer.getName();
 
-			log(composeMessage(RelationText, Function));
+			log(composeReasoningLine(RelationText, Function));
 			//---------------------------------------------
 			
 			String reference = composeReference(APConcept.statement);
@@ -3454,7 +3466,7 @@ public class SemanticReasoner
 		
 		// Here we may have more than an answer in ReasonigAL.
 		// So we have to rank them and choose the best one.
-		FinalAnswers = CombineEvidences(FinalAnswers, Function, pq);
+		FinalAnswers = combineEvidences(FinalAnswers, Function, pq);
 
 		InferenceEpilogue(pq, Function);
 
@@ -3997,28 +4009,28 @@ public class SemanticReasoner
 	
 	/**
 	 * combines different answers and merges similar ones and finally chooses the best ones to returned back to caller inferences
-	 * @param Answers
+	 * @param answers
 	 * @param Inference
 	 * @param pq
 	 * @return combined certainty
 	 */
-	private ArrayList<PlausibleAnswer> CombineEvidences(ArrayList<PlausibleAnswer> Answers, String Inference, PlausibleQuestion pq)
+	private ArrayList<PlausibleAnswer> combineEvidences(ArrayList<PlausibleAnswer> answers, String Inference, PlausibleQuestion pq)
 	{
-		if (IsEmpty(Answers))
+		if (IsEmpty(answers))
 		{
 			//log(ComposeMessage("Failed!", Inference));
 			return null;
 		}
 
-		printAnswers(Answers, "~", Inference, pq);
+		printAnswers(answers, "~", Inference, pq);
 
-		Answers = Summerize(Answers);
-		printAnswers(Answers, "^", Inference, pq);
+		answers = Summerize(answers);
+		printAnswers(answers, "^", Inference, pq);
 
-		Answers = ChooseEliteAnswers(Answers);
-		printAnswers(Answers, ":", Inference, pq);
+		answers = ChooseEliteAnswers(answers);
+		printAnswers(answers, ":", Inference, pq);
 
-		return Answers;		
+		return answers;		
 	}
 
 	/**
@@ -4165,43 +4177,46 @@ public class SemanticReasoner
 	 * @param Inference
 	 * @return formatted message
 	 */
-	private String composeMessage(String Message, String Inference)
+	private String composeReasoningLine(String Message, String Inference)
 	{
-		return ComposeMessage(Message, Inference, false);
+		return composeReasoningLine(Message, Inference, false);
 	}
-	private String ComposeMessage(String Message, String Inference, boolean IsFirstCall)
+	private String composeReasoningLine(String Message, String Inference, boolean IsFirstCall)
 	{
-		String Out = "";
+		if (!_logReasoningLinesToFile)
+			return "";
+		
+		String out = "";
 
-		Out += _reasoningDepth;// + "\t";
+		out += _reasoningDepth;// + "\t";
 
 		//Out += "\t";
 
 		for (int i=0; i<_reasoningDepth-1; i++) 
 		{
-			Out += "\t";
+			out += "\t";
 		}
 
 		if (IsFirstCall && _reasoningDepth <= 1)
 		{
-			Out += ">";
+			out += ">";
 		}
 		else if (IsFirstCall)
 		{
-			Out += ">";
+			out += ">";
 		}
 		else
 		{
-			Out += "\t";
+			out += "\t";
 		}
 
-		Out+= Inference;
+		out+= Inference;
 
-		Out += "\t";
+		out += "\t";
 
-		Out += Message;
+		out += Message;
 
-		return Out;
+		return out;
 	}
 	
 	/**
@@ -4379,13 +4394,13 @@ public class SemanticReasoner
 
 		String Question = ComposeStatement(pq);
 
-		log(ComposeMessage(Question, Function, true));
+		log(composeReasoningLine(Question, Function, true));
 
 		// We wouldn't like to reason for ever!
 		if (_reasoningDepth > _maxReasoningDepth)
 		{
 			// It's exceeded the Max. Reasoning Depth
-			log(composeMessage("BACKTRACK", Function));
+			log(composeReasoningLine("BACKTRACK", Function));
 			totalBackTracks++;
 			_reasoningDepth--;
 
@@ -4398,7 +4413,7 @@ public class SemanticReasoner
 		// hen searching in history
 		if (_pathHistory.IsInHistory(Function, pq.descriptor, pq.argument, pq.referent))
 		{
-			log("@" + composeMessage("Recurrent Question!", Function));
+			log("@" + composeReasoningLine("Recurrent Question!", Function));
 			//Print(ComposeMessage("History = " + PathHistory.ComposeHistory(), Function));
 
 			_reasoningDepth--;
@@ -4527,7 +4542,7 @@ public class SemanticReasoner
 		{
 			Statement = composeStatement(pq, Answer);
 			
-			log(Symbol + composeMessage(Statement + "\t" + Answer.parameters, Inference));
+			log(Symbol + composeReasoningLine(Statement + "\t" + Answer.parameters, Inference));
 		}
 	}
 
