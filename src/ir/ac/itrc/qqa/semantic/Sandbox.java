@@ -22,7 +22,7 @@ public class Sandbox
 		kb.importKb("cache/kb/farsnet.txt");
 		
 		SemanticReasoner sr = new SemanticReasoner(kb, ExecutionMode.RELEASE);
-		sr.setMaxReasoningDepth(14);
+		sr.setMaxReasoningDepth(15);
 		sr.setMaximumAnswers(1);
 		
 		PlausibleQuestion pq = new PlausibleQuestion();
