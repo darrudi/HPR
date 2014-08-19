@@ -329,7 +329,7 @@ public class SemanticReasoner
 				reference = composeReference(answer.statement);
 
 				_pathHistory.pushReasoningLine(statement, answer.parameters.toString(), reference);
-				answer.AddJustification(_pathHistory.GetReasoningLines());
+				answer.AddJustification(_pathHistory.getReasoningLines());
 				_pathHistory.popReasoningLine(1);
 				
 				log("*" + composeReasoningLine(statement + "\t" + answer.parameters, Function));
@@ -356,7 +356,7 @@ public class SemanticReasoner
 				reference = composeReference(answer.statement);
 				
 				_pathHistory.pushReasoningLine(statement, answer.parameters.toString(), reference);
-				answer.AddJustification(_pathHistory.GetReasoningLines());
+				answer.AddJustification(_pathHistory.getReasoningLines());
 				_pathHistory.popReasoningLine(1);
 				
 				log("*" + composeReasoningLine(statement + "\t" + answer.parameters, Function));
@@ -415,7 +415,7 @@ public class SemanticReasoner
 					
 					Yes.answer = KnowledgeBase.HPR_YES;
 					Yes.copyParameters(answer.parameters);
-					Yes.AddJustification(_pathHistory.GetReasoningLines());
+					Yes.AddJustification(_pathHistory.getReasoningLines());
 					
 					_pathHistory.popReasoningLine(1);
 					log("*" + composeReasoningLine(statement + "\t" + Yes.parameters, Function));
@@ -634,7 +634,7 @@ public class SemanticReasoner
 					String reference = composeReference(pa.statement);
 
 					_pathHistory.pushReasoningLine(Question, pa.parameters.toString(), reference);
-					pa.AddJustification(_pathHistory.GetReasoningLines());
+					pa.AddJustification(_pathHistory.getReasoningLines());
 					_pathHistory.popReasoningLine(1);
 					
 					log("*" + composeReasoningLine(Question + "\t" + pa.parameters, Function));
@@ -653,7 +653,7 @@ public class SemanticReasoner
 					
 					Yes.answer = KnowledgeBase.HPR_YES;
 					Yes.copyParameters(pa.parameters);
-					Yes.AddJustification(_pathHistory.GetReasoningLines());
+					Yes.AddJustification(_pathHistory.getReasoningLines());
 					
 					_pathHistory.popReasoningLine(1);
 					log("*" + composeReasoningLine(Question + "\t" + Yes.parameters, Function));
@@ -2452,14 +2452,14 @@ public class SemanticReasoner
 				newPQ.descriptor = AntecedentDescriptor;
 				newPQ.referent = AntecedentReferent;
 				
-				Answers = recall(newPQ); 
+				Answers = recall(newPQ);
+				
+				_pathHistory.popReasoningLine(3);
 				
 				if (IsEmpty(Answers))
 				{
 					continue;
 				}
-
-				_pathHistory.popReasoningLine(3);
 
 				for (Object obj3: Answers)
 				{
@@ -3026,7 +3026,7 @@ public class SemanticReasoner
 			AnswerText = ComposePlausibleQuestion(descriptor, argument, answer.answer, answer.IsNegative);
 			
 			_pathHistory.PushReasoningLine(AnswerText, answer.parameters.toString());
-			answer.AddJustification(_pathHistory.GetReasoningLines());
+			answer.AddJustification(_pathHistory.getReasoningLines());
 			_pathHistory.PopReasoningLine(SecondaryArguments.size() + 3);
 
 			log("*" + ComposeMessage(AnswerText, Function));
@@ -3125,7 +3125,7 @@ public class SemanticReasoner
 				_pathHistory.PushReasoningLine(AnswerText, answer.parameters.toString());
 				log("*" + ComposeMessage(AnswerText, Function));
 
-				answer.AddJustification(_pathHistory.GetReasoningLines());
+				answer.AddJustification(_pathHistory.getReasoningLines());
 				
 				_pathHistory.PopReasoningLine(4);
 
@@ -3667,7 +3667,7 @@ public class SemanticReasoner
 		
 		float TurnOverPenalty = 1;
 
-		if (_pathHistory.DoesGenSpecTurnOver(Function))
+		if (_pathHistory.doesGenSpecTurnOver(Function))
 		{
 			TurnOverPenalty = GEN_SPEC_DEGRADATION_FACTOR;
 		}
@@ -3698,7 +3698,7 @@ public class SemanticReasoner
 		
 		float TurnOverPenalty = 1;
 
-		if (_pathHistory.DoesGenSpecTurnOver(Function))
+		if (_pathHistory.doesGenSpecTurnOver(Function))
 		{
 			TurnOverPenalty = GEN_SPEC_DEGRADATION_FACTOR;
 		}
@@ -4046,7 +4046,7 @@ public class SemanticReasoner
 		}
 		
 		Hashtable<String, PlausibleAnswer> DistinctAnswers = new Hashtable<String, PlausibleAnswer>();
-		PlausibleAnswer RepititiveAnswer;
+		PlausibleAnswer repetitiveAnswer;
 		ArrayList<PlausibleAnswer> AL = new ArrayList<PlausibleAnswer>();
 		String Name;
 
@@ -4063,10 +4063,16 @@ public class SemanticReasoner
 			
 			if (DistinctAnswers.containsKey(Name))
 			{
-				RepititiveAnswer = (PlausibleAnswer)DistinctAnswers.get(Name);
-				RepititiveAnswer.parameters.certainty = DempsterShapherCombination(RepititiveAnswer.parameters.certainty, Answer.parameters.certainty);
-				RepititiveAnswer.AddJustifications(Answer.GetTechnicalJustifications());
-				RepititiveAnswer.conditions.addAll(Answer.conditions);
+				repetitiveAnswer = (PlausibleAnswer)DistinctAnswers.get(Name);
+				
+				ArrayList<String> newJustifications = repetitiveAnswer.getDifferentJustificationsWith(Answer);
+				
+				if (newJustifications.isEmpty())
+					continue;
+				
+				repetitiveAnswer.parameters.certainty = DempsterShapherCombination(repetitiveAnswer.parameters.certainty, Answer.parameters.certainty);
+				repetitiveAnswer.AddJustifications(newJustifications);
+				repetitiveAnswer.conditions.addAll(Answer.conditions);
 			}
 			else
 			{
@@ -4084,29 +4090,29 @@ public class SemanticReasoner
 		{
 			if (FinalAnswersTable.containsKey(Answer.answer.getName()))
 			{
-				RepititiveAnswer = (PlausibleAnswer)FinalAnswersTable.get(Answer.answer.getName());
+				repetitiveAnswer = (PlausibleAnswer)FinalAnswersTable.get(Answer.answer.getName());
 
-				if (Answer.isNegative && !RepititiveAnswer.isNegative)
+				if (Answer.isNegative && !repetitiveAnswer.isNegative)
 				{
-					RepititiveAnswer.parameters.certainty = RepititiveAnswer.parameters.certainty - Answer.parameters.certainty;
+					repetitiveAnswer.parameters.certainty = repetitiveAnswer.parameters.certainty - Answer.parameters.certainty;
 
-					if (RepititiveAnswer.parameters.certainty < 0)
+					if (repetitiveAnswer.parameters.certainty < 0)
 					{
-						RepititiveAnswer.isNegative = true;
-						RepititiveAnswer.parameters.certainty = -RepititiveAnswer.parameters.certainty;
-						RepititiveAnswer.RemoveJustifications();
-						RepititiveAnswer.AddJustifications(Answer.GetTechnicalJustifications());
+						repetitiveAnswer.isNegative = true;
+						repetitiveAnswer.parameters.certainty = -repetitiveAnswer.parameters.certainty;
+						repetitiveAnswer.RemoveJustifications();
+						repetitiveAnswer.AddJustifications(Answer.GetTechnicalJustifications());
 					}
 				}
-				else if (!Answer.isNegative && RepititiveAnswer.isNegative)
+				else if (!Answer.isNegative && repetitiveAnswer.isNegative)
 				{
-					RepititiveAnswer.parameters.certainty = -RepititiveAnswer.parameters.certainty + Answer.parameters.certainty;
+					repetitiveAnswer.parameters.certainty = -repetitiveAnswer.parameters.certainty + Answer.parameters.certainty;
 
-					if (RepititiveAnswer.parameters.certainty >= 0)
+					if (repetitiveAnswer.parameters.certainty >= 0)
 					{
-						RepititiveAnswer.isNegative = false;
-						RepititiveAnswer.RemoveJustifications();
-						RepititiveAnswer.AddJustifications(Answer.GetTechnicalJustifications());
+						repetitiveAnswer.isNegative = false;
+						repetitiveAnswer.RemoveJustifications();
+						repetitiveAnswer.AddJustifications(Answer.GetTechnicalJustifications());
 					}
 				}
 				else
@@ -4378,7 +4384,7 @@ public class SemanticReasoner
 	private void InferenceEpilogue(PlausibleQuestion pq, String function)
 	{
 		_reasoningDepth--;
-		_pathHistory.PopHistory(function, pq);
+		_pathHistory.popHistory(function, pq);
 	}
 
 	/**
@@ -4411,7 +4417,7 @@ public class SemanticReasoner
 		// We don't think twice about a matter.
 		// TODO: we should take into account the CXTIME and CXLOCATION in the plausible question 
 		// hen searching in history
-		if (_pathHistory.IsInHistory(Function, pq.descriptor, pq.argument, pq.referent))
+		if (_pathHistory.isInHistory(Function, pq.descriptor, pq.argument, pq.referent))
 		{
 			log("@" + composeReasoningLine("Recurrent Question!", Function));
 			//Print(ComposeMessage("History = " + PathHistory.ComposeHistory(), Function));
@@ -4420,7 +4426,7 @@ public class SemanticReasoner
 			return false;
 		}
 
-		_pathHistory.PushHistory(Function, pq.descriptor, pq.argument, pq.referent);
+		_pathHistory.pushHistory(Function, pq.descriptor, pq.argument, pq.referent);
 
 		return true;
 	}

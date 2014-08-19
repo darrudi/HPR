@@ -60,6 +60,6 @@ public class Sandbox
 		System.out.println("Summary:");
 		System.out.println("\tInferences: " + sr.totalCalls);
 		System.out.println("\tTime: " + sr.reasoningTime / 1000);
-		System.out.println("\tThroughput: " + (1000 * sr.totalCalls / sr.reasoningTime) + " inference/s");
+		System.out.println("\tThroughput: " + (sr.totalCalls / sr.reasoningTime) * 1000 + " inference/s");
 	}	
 }

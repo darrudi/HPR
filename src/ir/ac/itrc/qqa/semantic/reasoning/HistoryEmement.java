@@ -1,5 +1,7 @@
 package ir.ac.itrc.qqa.semantic.reasoning;
 
+import java.util.HashSet;
+
 /**
  * implements each element in the reasoning history
  * @author Ehsan Darrudi
@@ -8,19 +10,21 @@ package ir.ac.itrc.qqa.semantic.reasoning;
 public class HistoryEmement
 {
 	/** search key for this element to be used in the history hash table*/
-	String SearchKey = "";
+	String searchKey = "";
 	
 	/** link to the next element */
-	HistoryEmement NextHistoryElement = null;
+	HistoryEmement nextHistoryElement = null;
 	
 	/** number of reasoning lines in this element */
-	int ReasoningLineNum = 0;
+	int reasoningLineNum = 0;
 	
 	/** the maximum number of reasoning steps (lines) allowed */
-	final int MaxReasningLineNum = 30;
+	final int maxReasningLineNum = 30;
 	
 	/** the container for reasoning lines */
-	String[] ReasoningLine = new String[MaxReasningLineNum];
+	private String[] reasoningLine = new String[maxReasningLineNum];
+	
+	private HashSet<String> inferences = new HashSet<String>(); 
 
 	//~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 
@@ -31,28 +35,29 @@ public class HistoryEmement
 	 *  @param certainty the certainty in that statement
 	 *  @return true if successful, false otherwise
 	 */
-	public void AddReasningLine(String statement, String certainty, String reference)
+	public void pushReasningLine(String statement, String certainty, String reference)
 	{
-		if (ReasoningLineNum == MaxReasningLineNum)
+		if (reasoningLineNum == maxReasningLineNum)
 		{
 			return;
 		}
 		
-		ReasoningLine[ReasoningLineNum] = statement;
+		reasoningLine[reasoningLineNum] = statement;
 
 		if (!certainty.isEmpty())
 		{
-			ReasoningLine[ReasoningLineNum] += " : " + certainty; 
+			reasoningLine[reasoningLineNum] += " : " + certainty; 
 		}
 		
 		if (!reference.isEmpty())
 		{
-			ReasoningLine[ReasoningLineNum] += " ~ " + reference;
+			reasoningLine[reasoningLineNum] += " ~ " + reference;
 		}
 		
-		ReasoningLineNum++;
+		reasoningLineNum++;
 	}
-
+	
+	
 	/**
 	 * composes all reasoning lines associated with this history element
 	 * @return the composed reasoning lines
@@ -61,9 +66,9 @@ public class HistoryEmement
 	{
 		String Out = "";
 
-		for(int i = 0; i < ReasoningLineNum; i++)
+		for(int i = 0; i < reasoningLineNum; i++)
 		{
-			Out += ReasoningLine[i] + "\r";	
+			Out += reasoningLine[i] + "\r";	
 		}
 
 		return Out;
@@ -71,19 +76,18 @@ public class HistoryEmement
 
 	/**
 	 * pops a number of reasoning lines from this history element
-	 * @param LinesNum the number of lines to be removed
+	 * @param linesNum the number of lines to be removed
 	 * @return true if successful, false otherwise
 	 */
-	public boolean PopReasoningLine(int LinesNum)
+	public boolean popReasoningLine(int linesNum)
 	{
-		if (ReasoningLineNum - LinesNum < 0)
+		if (reasoningLineNum - linesNum < 0)
 		{
 			return false;
 		}
 
-		ReasoningLineNum -= LinesNum;
+		reasoningLineNum -= linesNum;
 
 		return true;
 	}
 }
-

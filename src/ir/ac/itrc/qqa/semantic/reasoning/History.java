@@ -18,7 +18,7 @@ public class History
 	private HistoryEmement lastNodeInHistory;
 
 	/** a hash to keep track of all elements in the history */
-	private Hashtable<String, HistoryEmement> historyStorage = new Hashtable<String, HistoryEmement>();
+	private Hashtable<String, HistoryEmement> epochs = new Hashtable<String, HistoryEmement>();
 	
 	//~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 	
@@ -29,19 +29,19 @@ public class History
 	 * @param argument
 	 * @param referent
 	 */
-	public void PushHistory(String inference, Node descriptor, Node argument, Node referent)
+	public void pushHistory(String inference, Node descriptor, Node argument, Node referent)
 	{
-		String Key = ComposeSearchKey(inference, descriptor, argument, referent);
+		String key = composeSearchKey(inference, descriptor, argument, referent);
 
 		HistoryEmement he = new HistoryEmement();
 
-		he.SearchKey = Key;
+		he.searchKey = key;
 
-		he.NextHistoryElement = lastNodeInHistory;
+		he.nextHistoryElement = lastNodeInHistory;
 
 		lastNodeInHistory = he;
 
-		historyStorage.put(Key, he);
+		epochs.put(key, he);
 	}
 
 	/**
@@ -49,11 +49,11 @@ public class History
 	 * @param inference the inference name
 	 * @param pq plausible question
 	 */
-	public void PopHistory(String inference, PlausibleQuestion pq)
+	public void popHistory(String inference, PlausibleQuestion pq)
 	{
-		String Key = ComposeSearchKey(inference, pq.descriptor, pq.argument, pq.referent);
+		String key = composeSearchKey(inference, pq.descriptor, pq.argument, pq.referent);
 
-		HistoryEmement HE = (HistoryEmement)historyStorage.get(Key);
+		HistoryEmement HE = (HistoryEmement)epochs.get(key);
 		MyError.assertNotNull(HE);
 
 		if (HE != lastNodeInHistory)
@@ -63,9 +63,9 @@ public class History
 		
 		MyError.assertNotNull(lastNodeInHistory);
 
-		HistoryEmement Temp = lastNodeInHistory.NextHistoryElement;
+		HistoryEmement Temp = lastNodeInHistory.nextHistoryElement;
 
-		historyStorage.remove(Key);
+		epochs.remove(key);
 		
 		lastNodeInHistory = Temp;
 	}
@@ -78,11 +78,11 @@ public class History
 	 * @param referent
 	 * @return true/false
 	 */
-	public boolean IsInHistory(String inference, Node descriptor, Node argument, Node referent)
+	public boolean isInHistory(String inference, Node descriptor, Node argument, Node referent)
 	{
-		String Key = ComposeSearchKey(inference, descriptor, argument, referent);
+		String Key = composeSearchKey(inference, descriptor, argument, referent);
 		 
-		HistoryEmement HE = historyStorage.get(Key);
+		HistoryEmement HE = epochs.get(Key);
 		
 		if (HE != null)
 		{
@@ -96,77 +96,77 @@ public class History
 	 * generates a string from the content of the history
 	 * @return the content
 	 */
-	public String ComposeHistory()
+	public String composeHistory()
 	{
-		String Out = "";
+		String out = "";
 
-		HistoryEmement Temp = lastNodeInHistory;
+		HistoryEmement temp = lastNodeInHistory;
 
-		while (Temp != null)
+		while (temp != null)
 		{
-			Out += Temp.SearchKey + " <-- ";
+			out += temp.searchKey + " <-- ";
 
-			Temp = Temp.NextHistoryElement;
+			temp = temp.nextHistoryElement;
 		}
 
-		Out += "START";
+		out += "START";
 
-		return Out;
+		return out;
 	}
 
 	/**
 	 *  generates a brief string representation from the content of the history
 	 * @return the content 
 	 */
-	public String ComposeHistoryBrief()
+	public String composeHistoryBrief()
 	{
-		String Out = "";
-		String Text;
-		int Pos;
+		String out = "";
+		String text;
+		int pos;
 
-		ArrayList<String> TempStrings = new ArrayList<String>();
+		ArrayList<String> tempStrings = new ArrayList<String>();
 
-		HistoryEmement Temp = lastNodeInHistory;
+		HistoryEmement temp = lastNodeInHistory;
 
-		while (Temp != null)
+		while (temp != null)
 		{
-			Pos = Temp.SearchKey.indexOf("[");
+			pos = temp.searchKey.indexOf("[");
             			
-			Text = Common.removeSubstring(Temp.SearchKey, Pos, Temp.SearchKey.length() - Pos);
+			text = Common.removeSubstring(temp.searchKey, pos, temp.searchKey.length() - pos);
 			
-			if (Text != "RECALL")
+			if (text != "RECALL")
 			{
-				TempStrings.add(Text);
+				tempStrings.add(text);
 			}
 			
-			Temp = Temp.NextHistoryElement;
+			temp = temp.nextHistoryElement;
 		}
 
-		for (int i = TempStrings.size() - 1; i >= 0; i--)
+		for (int i = tempStrings.size() - 1; i >= 0; i--)
 		{
-			Text = (String)TempStrings.get(i);
+			text = (String)tempStrings.get(i);
 
-			Out += Text;
+			out += text;
 			
 			if (i != 0)
 			{
-				Out += "|";
+				out += "|";
 			}
 		}
 
 
-		return Out;
+		return out;
 	}
 
 	/**
 	 * pushes a reasoning line to the current reasoning step 
-	 * @param Statement reasoning line
-	 * @param Certainty the certainty associated with this reasoning step 
+	 * @param statement reasoning line
+	 * @param certainty the certainty associated with this reasoning step 
 	 * @return true if successful, false otherwise
 	 */
-	public void pushReasoningLine(String Statement, String Certainty, String Reference)
+	public void pushReasoningLine(String statement, String certainty, String reference)
 	{
-		lastNodeInHistory.AddReasningLine(Statement, Certainty, Reference);
+		lastNodeInHistory.pushReasningLine(statement, certainty, reference);
 	}
 	
 	/**
@@ -176,14 +176,14 @@ public class History
 	 */
 	public boolean popReasoningLine(int LinesNum)
 	{
-		return lastNodeInHistory.PopReasoningLine(LinesNum);
+		return lastNodeInHistory.popReasoningLine(LinesNum);
 	}
 
 	/**
 	 * composes all the reasoning line (justification) for the current reasoning step
 	 * @return composed justification
 	 */
-	public String GetReasoningLines()
+	public String getReasoningLines()
 	{
 		String Out = "";
 		String ReasningLine = "";
@@ -201,7 +201,7 @@ public class History
 				Out += "\r";
 			}
 
-			Temp = Temp.NextHistoryElement;
+			Temp = Temp.nextHistoryElement;
 		}
 
 		return Out;	
@@ -215,31 +215,31 @@ public class History
 	 * @param referent
 	 * @return the composed search key
 	 */
-	private String ComposeSearchKey(String inference, Node descriptor, Node argument, Node referent)
+	private String composeSearchKey(String inference, Node descriptor, Node argument, Node referent)
 	{
 		MyError.assertNotNull(descriptor);
 		
-		String Key;
+		String key;
 
 		if (referent == null && argument == null)
 		{
-			Key = inference + "[" + descriptor.getName() + "]";
+			key = inference + "[" + descriptor.getName() + "]";
 		}
 		else if (referent == null && argument != null)
 		{
-			Key = inference + "[" + descriptor.getName() + "(" + argument.getName() + ")={?}]";
+			key = inference + "[" + descriptor.getName() + "(" + argument.getName() + ")={?}]";
 		}
 		else if (referent != null && argument == null)
 		{
-			Key = inference + "[" + descriptor.getName() + "(?)={" + referent.getName() +  "}]";
+			key = inference + "[" + descriptor.getName() + "(?)={" + referent.getName() +  "}]";
 		}
 		else
 		{
 			// None is null;
-			Key = inference + "[" + descriptor.getName() + "(" + argument.getName() + ")={" + referent.getName() +  "}]";
+			key = inference + "[" + descriptor.getName() + "(" + argument.getName() + ")={" + referent.getName() +  "}]";
 		}
 
-		return Key;
+		return key;
 	}
 	
 	/**
@@ -250,18 +250,18 @@ public class History
 	 * @param Function
 	 * @return true/false
 	 */
-	public boolean DoesGenSpecTurnOver(String Function)
+	public boolean doesGenSpecTurnOver(String Function)
 	{
 		HistoryEmement Temp = lastNodeInHistory;
 
 		while (Temp != null)
 		{
-			if (Temp.SearchKey.startsWith(Function))
+			if (Temp.searchKey.startsWith(Function))
 			{
 				return true;
 			}
 
-			Temp = Temp.NextHistoryElement;
+			Temp = Temp.nextHistoryElement;
 		}
 
 		return false;

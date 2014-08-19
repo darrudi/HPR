@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ir.ac.itrc.qqa.semantic.enums.DependencyType;
 import ir.ac.itrc.qqa.semantic.enums.SourceType;
@@ -52,6 +54,8 @@ public class PlausibleAnswer implements Comparable<Object>
 	public SourceType source = SourceType.UNKNOWN;
 	
 	public float score = 0;
+	
+	Pattern _inferenceLinePattern = Pattern.compile("[\r\n]([^>:].+?)[~\r\n]", Pattern.DOTALL);
 
 	// ~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=~=
 	
@@ -131,7 +135,7 @@ public class PlausibleAnswer implements Comparable<Object>
 	{
 		String Justification;
 		String Old = "*CONCLUSION GOES HERE*" + Inference + "(" + Depth + ")";
-		String New = "> " + Inference + ":\r" + Statement + " : " + Certainty;
+		String New = "> " + Inference + ":\r::" + Statement + " : " + Certainty;
 
 		ArrayList<String> NewJustifications = new ArrayList<String>();
 
@@ -687,5 +691,48 @@ public class PlausibleAnswer implements Comparable<Object>
 		newAnswer.parameters = new CertaintyParameters(this.parameters);
 		
 		return newAnswer;
+	}
+	
+	public ArrayList<String> getDifferentJustificationsWith(PlausibleAnswer that)
+	{
+		ArrayList<String> outs = new ArrayList<String>();
+		
+		for (String thatJustification: that.GetTechnicalJustifications())
+		{
+			Matcher matcher = _inferenceLinePattern.matcher(thatJustification);
+			
+			boolean isNewJustification = true;
+			
+			for (String thisJustification: this.GetTechnicalJustifications())
+			{
+				if (doesJustificationContainAllInferences(thisJustification, matcher))
+				{
+					isNewJustification = false;
+					break;
+				}
+			}
+			
+			if (isNewJustification)
+				outs.add(thatJustification);
+			
+			matcher.reset();
+		}
+		
+		return outs;
+	}
+	
+	private boolean doesJustificationContainAllInferences(String justification, Matcher matcher)
+	{
+		while (matcher.find())
+		{
+			String inference = matcher.group(1).trim();
+			
+			if (!justification.contains(inference))
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 }
