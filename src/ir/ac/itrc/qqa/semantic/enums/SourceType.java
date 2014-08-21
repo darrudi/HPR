@@ -15,6 +15,7 @@ public enum SourceType
 	ESTELAHNAME,
 	FARHANG_QURAN,
 	TEBYAN,
+	INJUREDPIGEION,
 	UNKNOWN;
 	
 	public String getFarsiName()
@@ -28,6 +29,7 @@ public enum SourceType
 			case ESTELAHNAME: return "اصطلاح نامه";
 			case FARHANG_QURAN: return "فرهنگ قرآن";
 			case TEBYAN: return "دانشنامه موضوعی تبیان";
+			case INJUREDPIGEION: return "کبوتر زخمی";
 			case UNKNOWN: return "نامعلوم";
 			default: return "نامعلوم";
 		}

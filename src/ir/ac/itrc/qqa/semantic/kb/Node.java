@@ -282,6 +282,7 @@ public class Node implements Comparable<Node>
 				case 'h': this._source = SourceType.FARHANG_QURAN; break;
 				case 'n': this._source = SourceType.TAFSIR_NEMOONE; break;
 				case 't': this._source = SourceType.TEBYAN; break;
+				case 'i': this._source = SourceType.INJUREDPIGEION; break;
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 			
@@ -315,6 +316,7 @@ public class Node implements Comparable<Node>
 				case 'h': break;
 				case 'n': break;
 				case 't': break;
+				case 'i': break;
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 			
@@ -344,6 +346,7 @@ public class Node implements Comparable<Node>
 				case 'n': return SourceType.TAFSIR_NEMOONE;
 				case 'h': return SourceType.FARHANG_QURAN;
 				case 't': return SourceType.TEBYAN;
+				case 'i': return SourceType.INJUREDPIGEION;											
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 		}
