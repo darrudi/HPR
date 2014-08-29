@@ -19,18 +19,21 @@ public class Sandbox
 	public static void checkSemanticReasoner()
 	{
 		KnowledgeBase kb = new KnowledgeBase();
-		kb.importKb("cache/kb/farsnet.txt");
+		kb.importKb("cache/kb/testKB.txt");
+		//kb.importKb("cache/kb/farsnet--3.txt");
 		
 		SemanticReasoner sr = new SemanticReasoner(kb, ExecutionMode.RELEASE);
 
 		//Setting the max reasoning depth: important!
-		sr.setMaxReasoningDepth(15);
+		sr.setMaxReasoningDepth(5);//15);
 		sr.setMaximumAnswers(1);
 		
 		PlausibleQuestion pq = new PlausibleQuestion();
-		pq.argument = kb.addConcept("پسر بچه");
-		pq.referent = kb.addConcept("نفر");
-		pq.descriptor = KnowledgeBase.HPR_ISA;
+		pq.argument = kb.addConcept("اسلام");
+		//pq.argument = kb.addConcept("پسر بچه#n1");
+		pq.referent = null;//kb.addConcept("نفر");
+		//pq.descriptor = KnowledgeBase.HPR_ISA;
+		pq.descriptor = kb.addConcept("راهنما");
 
 //		pq.argument = kb.addConcept("پسر بچه");
 //		pq.referent = kb.addConcept("بچه");

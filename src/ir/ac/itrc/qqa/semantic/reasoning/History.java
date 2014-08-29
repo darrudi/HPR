@@ -164,8 +164,11 @@ public class History
 	 * @param certainty the certainty associated with this reasoning step 
 	 * @return true if successful, false otherwise
 	 */
-	public void pushReasoningLine(String statement, String certainty, String reference)
+	public void pushReasoningLine(String statement, String certainty, String reference)	
 	{
+		System.out.println("statement " + statement);
+		System.out.println("certainty " + certainty);
+		System.out.println("reference " + reference);
 		lastNodeInHistory.pushReasningLine(statement, certainty, reference);
 	}
 	
