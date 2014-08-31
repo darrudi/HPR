@@ -443,7 +443,12 @@ public class KnowledgeBase
 		
 		if (isInMemory(searchName)) 
 		{
+			
 			Node already = (Node)_nodes.get(searchName.toLowerCase());
+			
+			if(already.getSourceType() == SourceType.TTS)
+				System.out.println("\n\n  isInMemory: " + searchName + "\n\n" );
+			
 			
 			if (_overrideSourceTypeOnAddition && source != SourceType.UNKNOWN)
 				already.setSourceType(source);
