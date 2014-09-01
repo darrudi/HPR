@@ -1743,6 +1743,18 @@ public class KnowledgeExplorer
 			print(i + ": " + pa.toString());
 			print(pa.certaintyToString());
 			
+			//--------------------------------added by hasehmi-----start
+			ArrayList<String> justifications = pa.GetTechnicalJustifications();
+			
+			int countJustification = 0;
+			for (String justification: justifications)
+			{
+				print("-------" + ++countJustification + "--------");
+				print(justification);
+			}
+			//----------------------------------added by hashemi-----end
+			
+			
 			_lastPlausibleQuestion = pa.question;
 		}
 		
@@ -1750,7 +1762,7 @@ public class KnowledgeExplorer
 		print("~~~~~~~~~~~~~~~~~~~~~~~~~~");
 		print("");
 		
-		print("تعداد کل استنباط های انجام شده: " + _re.totalCalls);
+		print("تعداد کل استنباط های انجام شده: " + _re.totalCalls);		
 		print("زمان کل استدلال: " + _re.reasoningTime/1000 + " ثانیه");
 	}
 	

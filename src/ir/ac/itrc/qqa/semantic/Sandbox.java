@@ -19,8 +19,9 @@ public class Sandbox
 	public static void checkSemanticReasoner()
 	{
 		KnowledgeBase kb = new KnowledgeBase();
-		kb.importKb("cache/kb/testKB.txt");
-		//kb.importKb("cache/kb/farsnet--3.txt");
+		kb.importKb("cache/kb/farsnet.txt");
+		//kb.importKb("cache/kb/testKB.txt");
+		kb.importKb("cache/kb/farsnet--6.txt");
 		
 		SemanticReasoner sr = new SemanticReasoner(kb, ExecutionMode.RELEASE);
 
@@ -29,11 +30,11 @@ public class Sandbox
 		sr.setMaximumAnswers(1);
 		
 		PlausibleQuestion pq = new PlausibleQuestion();
-		pq.argument = kb.addConcept("اسلام");
+		pq.argument = kb.addConcept("کبوتر#n1");
 		//pq.argument = kb.addConcept("پسر بچه#n1");
-		pq.referent = null;//kb.addConcept("نفر");
-		//pq.descriptor = KnowledgeBase.HPR_ISA;
-		pq.descriptor = kb.addConcept("راهنما");
+		pq.referent = kb.addConcept("جانور§n-12239");
+		pq.descriptor = KnowledgeBase.HPR_ISA;
+		//pq.descriptor = kb.addConcept("راهنما");
 
 //		pq.argument = kb.addConcept("پسر بچه");
 //		pq.referent = kb.addConcept("بچه");

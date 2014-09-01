@@ -445,17 +445,15 @@ public class KnowledgeBase
 		{
 			
 			Node already = (Node)_nodes.get(searchName.toLowerCase());
-			
-			if(already.getSourceType() == SourceType.TTS)
-				System.out.println("\n\n  isInMemory: " + searchName + "\n\n" );
-			
-			
+						
+			System.out.println("isInMemory: " + searchName);
+						
 			if (_overrideSourceTypeOnAddition && source != SourceType.UNKNOWN)
 				already.setSourceType(source);
 			
 			return already;
 		}
-		
+		System.out.println("is Not InMemory: " + searchName);
 		// Tashdid _ّ__ character is a special case. many concepts names in Farsi and Arabic can be written with or without it.
 		// so we do not add a new concept when the Tashdid-less version already exists in the kb.
 		// dictionary entries (having '#' in their names) are excempt from this extra check.
