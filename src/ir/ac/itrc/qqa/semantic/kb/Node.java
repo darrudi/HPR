@@ -168,6 +168,11 @@ public class Node implements Comparable<Node>
 		// This constructor is called only by PlausibleStatement (a child of this class)
 		
 		Integer id = template.getNextInstanceId();
+		
+		
+		//------------- added by hashemi ------------------
+		extractPropertiesFromName(template._name);
+		//------------- added by hashemi ------------------
 
 		//TODO: in Node constructor check to see if the name starts with '*' and change it if so.
 		_name = "*" + template._name + " (" + id.toString() + ")";
