@@ -1001,6 +1001,34 @@ public class Node implements Comparable<Node>
 		
 		return null;
 	}
+
+	
+	/**
+	 * finds relations from this node to a target node
+	 * @param relation relation conceptType to be checked
+	 * @param destinationNode target node
+	 * @return a relation
+	 */
+	public PlausibleStatement findRelationToTarget2(Node relation, Node destinationNode)
+	{
+		OutLinkElement OutLink = _lastOutLink;
+
+		while (OutLink != null)
+		{
+			if (OutLink.destinationNode == destinationNode)
+			{
+				if (OutLink.relation == relation)
+				{
+					return OutLink.relation;
+				}
+			}
+
+			OutLink = OutLink.previousOutLinkElement;
+		}
+		
+		return null;
+	}
+
 	
 	/**
 	 * Finds the relation this node receives from <code>sourceNode</code>

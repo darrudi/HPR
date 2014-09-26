@@ -384,7 +384,8 @@ public class SemanticReasoner
 			//											- 4c3) CX:TIME = {time}?
 			//											- 4c4) CX:Location = {location}?
 						
-			answers = RecallCXs(pq, Function);
+//			answers = RecallCXs(pq, Function);
+			answers = RecallCXs2(pq, Function);
 		}
 		else //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		{
@@ -590,25 +591,26 @@ public class SemanticReasoner
 		//											- 4c2) CX:Location = {?}
 		//											- 4c3) CX:TIME = {time}?
 		//											- 4c4) CX:Location = {location}?
-					
+		
+		//it should not come here!
 		if (pq.referent == KnowledgeBase.HPR_ANY) // 4a
 		{			
 			PSs = pq.argument.findOutRelations(pq.descriptor);
-		}
+		}//it should not come here!
 		else if (pq.argument == KnowledgeBase.HPR_ANY) // 4b
 		{
 			PSs = pq.referent.findInRelations(pq.descriptor);
-		}
+		}//it just enters this part!
 		else // 4c
 		{
-			PlausibleStatement ps = pq.argument.findRelationToTarget(pq.descriptor, pq.referent);
+			PlausibleStatement ps = pq.argument.findRelationToTarget(pq.descriptor, pq.referent);			
 			
 			if (ps != null)
 			{
 				PSs.add(ps);
 			}
 		}
-		
+		//TODO: what happens if both pq.cxTime and pq.cxLocation were not HPR_ANY 
 		if (pq.cxTime != KnowledgeBase.HPR_ANY) // 4x1, 4x3
 		{
 			cx = KnowledgeBase.HPR_CXTIME;
@@ -665,6 +667,124 @@ public class SemanticReasoner
 		
 		return Answers;
 	}
+	
+	/**
+	 * a variation of RECALL specialized in finding contextual answers (i.e. Time and Location) answers 
+	 * @param pq input plausible question
+	 * @param Function the inference which called this one (it is always "RECALL")
+	 * @return a list of found answers
+	 */
+	private ArrayList<PlausibleAnswer> RecallCXs2(PlausibleQuestion pq, String Function)
+	{
+		ArrayList<PlausibleAnswer> Answers = new ArrayList<PlausibleAnswer>();
+		
+		ArrayList<PlausibleAnswer> cxAnswers;
+		ArrayList<PlausibleStatement> PSs = new ArrayList<PlausibleStatement>();
+
+		Node cx = null;
+		Node pqCX = null;
+		
+		Node descriptor = pq.descriptor;
+		Node argument = pq.argument;
+		Node referent = pq.referent;
+		
+		String Question;
+		
+		// QUESTION TYPE 4: asking for CXTIME or CXLOCATION
+		//
+		//  				4a) Des(Arg)={Anything}:
+		//											- 4a1) CX:Time = {?} 
+		//											- 4a2) CX:Location = {?}
+		//											- 4a3) CX:TIME = {time}?
+		//											- 4a4) CX:Location = {location}?
+		//					4b) Des(Anything)={Ref}:
+		//											- 4b1) CX:Time = {?} 
+		//											- 4b2) CX:Location = {?}
+		//											- 4b3) CX:Time = {time}?
+		//											- 4b4) CX:Location = {location}?
+		//					4c) Des(Arg)={Ref}:
+		//											- 4c1) CX:Time = {?} 
+		//											- 4c2) CX:Location = {?}
+		//											- 4c3) CX:TIME = {time}?
+		//											- 4c4) CX:Location = {location}?
+		
+		//it should not come here!
+		if (referent == KnowledgeBase.HPR_ANY) // 4a
+		{			
+			PSs = argument.findOutRelations(descriptor);
+		}//it should not come here!
+		else if (argument == KnowledgeBase.HPR_ANY) // 4b
+		{
+			PSs = referent.findInRelations(descriptor);
+		}//it just enters this part!
+		else // 4c
+		{
+//			PlausibleStatement ps = argument.findRelationToTarget(descriptor, referent);
+			PlausibleStatement ps = argument.findRelationToTarget2(descriptor, referent);
+			
+			if (ps != null)
+			{
+				PSs.add(ps);
+			}
+		}
+		//TODO: what happens if both pq.cxTime and pq.cxLocation were not HPR_ANY 
+		if (pq.cxTime != KnowledgeBase.HPR_ANY) // 4x1, 4x3
+		{
+			cx = KnowledgeBase.HPR_CXTIME;
+			pqCX = pq.cxTime;
+		}
+		if (pq.cxLocation != KnowledgeBase.HPR_ANY) //else // 4x2, 4x4
+		{
+			cx = KnowledgeBase.HPR_CXLOCATION;
+			pqCX = pq.cxLocation;
+		}
+						
+		for (PlausibleStatement ps: PSs)
+		{
+			cxAnswers = ps.findTargetNodes(cx);
+			
+			for (PlausibleAnswer pa: cxAnswers)
+			{
+				if (pqCX == null) // 4x1, 4x2
+				{
+					pa.parameters.certainty = CXComputeCertainty(pa.parameters.certainty, ps.parameters.certainty);
+					
+					Question = composeStatement(pq, pa);					
+					String reference = composeReference(pa.statement);
+
+					_pathHistory.pushReasoningLine(Question, pa.parameters.toString(), reference);
+					pa.AddJustification(_pathHistory.getReasoningLines());
+					_pathHistory.popReasoningLine(1);
+					
+					log("*" + composeReasoningLine(Question + "\t" + pa.parameters, Function));
+
+					Answers.add(pa);
+					
+				}
+				else if (pqCX == pa.answer)// 4x3, 4x4
+				{
+					PlausibleAnswer Yes = new PlausibleAnswer();
+					
+					Question = composeStatement(pq, pa);					
+					String reference = composeReference(pa.statement);
+					
+					_pathHistory.pushReasoningLine(Question, pa.parameters.toString(), reference);
+					
+					Yes.answer = KnowledgeBase.HPR_YES;
+					Yes.copyParameters(pa.parameters);
+					Yes.AddJustification(_pathHistory.getReasoningLines());
+					
+					_pathHistory.popReasoningLine(1);
+					log("*" + composeReasoningLine(Question + "\t" + Yes.parameters, Function));
+
+					Answers.add(Yes);
+				}
+			}
+		}
+		
+		return Answers;
+	}
+
 	
 	/**
 	 * argument Generalization Inference
