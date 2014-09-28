@@ -7,6 +7,8 @@
 
 package ir.ac.itrc.qqa.semantic.kb;
 
+
+import ir.ac.itrc.qqa.semantic.enums.CONTEXT;
 import ir.ac.itrc.qqa.semantic.enums.LexicalType;
 import ir.ac.itrc.qqa.semantic.enums.ConceptType;
 import ir.ac.itrc.qqa.semantic.enums.SourceType;
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import sun.net.www.content.text.plain;
+import sun.security.util.Length;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
@@ -2026,5 +2030,71 @@ public class Node implements Comparable<Node>
 	public int getAccessed()
 	{
 		return _accessed;
+	}
+	
+
+	/**
+	 * this method returns the Synset node which originalNode has SYN relation with, 
+	 * if not found searches for Synset node which originalNode has SIM relation with,
+	 * if not found return null.
+	 * 
+	 * @param originalNode
+	 * @return
+	 */
+	public Node getSynSet(){
+				
+		ArrayList<PlausibleAnswer> answers = findTargetNodes(KnowledgeBase.HPR_SYN);
+				
+		for (PlausibleAnswer answer: answers)
+			if(answer.answer != null)
+				return answer.answer;
+		
+		answers = findTargetNodes(KnowledgeBase.HPR_SIM);
+		
+		for (PlausibleAnswer answer: answers){
+			Node found = answer.answer;
+			if(found != null)
+				if(found.getLexicalType() == LexicalType.SYNSET)
+					return found;
+		}
+		MyError.error(this + " node has no SynSet nor SIMs to any SynSet, it is a bug in kb!");
+		return null;
+	}
+	/**
+	 * if _name of this node exists in CONTEXT enum, it is a context node.
+	 * @return
+	 */
+	public boolean isContextNode(){
+		try{
+			String cxName = "";
+			int index = _name.indexOf("CX:");
+			if(index != -1)
+				if((index + 3) < _name.length())
+					cxName = _name.substring(index + 3);
+			CONTEXT.valueOf(cxName);
+			return true;
+		}
+		catch(Exception e){
+			return false;
+		}			
+	}
+	
+	/**
+	 * this methods return all relation of this node with relationType of CONTEXT.
+	 * 
+	 * @param originalNode
+	 * @return
+	 */
+	public ArrayList<PlausibleStatement> loadCXs(){
+		
+		ArrayList<PlausibleStatement> outs = findOutRelations(KnowledgeBase.HPR_ANY);
+		
+		ArrayList<PlausibleStatement> cxs = new ArrayList<PlausibleStatement>();
+		
+		for(PlausibleStatement out:outs)			
+			if(out.relationType != null && out.relationType.isContextNode())
+				cxs.add(out);		
+		
+		return cxs;
 	}
 }
