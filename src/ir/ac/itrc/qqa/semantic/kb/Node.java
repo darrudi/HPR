@@ -2080,6 +2080,25 @@ public class Node implements Comparable<Node>
 	}
 	
 	/**
+	 * if this node isContextNode, returns the pure name of context, means "CX:" extracted!
+	 * @return
+	 */
+	public String getContextName(){
+		if(!isContextNode()){
+			MyError.error("this " + this + " node is not a context!");
+			return null;
+		}
+		String cxName = _name;
+		int index = _name.indexOf("CX:");
+		if(index != -1)
+			if((index + 3) < _name.length())
+				cxName = _name.substring(index + 3);		
+		return cxName;
+					
+	}
+	
+	
+	/**
 	 * this methods return all relation of this node with relationType of CONTEXT.
 	 * 
 	 * @param originalNode
