@@ -384,8 +384,8 @@ public class SemanticReasoner
 			//											- 4c3) CX:TIME = {time}?
 			//											- 4c4) CX:Location = {location}?
 						
-//			answers = RecallCXs(pq, Function);
-			answers = RecallCXs2(pq, Function);
+			answers = RecallCXs(pq, Function);
+//			answers = RecallCXs2(pq, Function);
 		}
 		else //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		{
