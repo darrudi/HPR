@@ -982,11 +982,11 @@ public class Node implements Comparable<Node>
 
 	/**
 	 * finds relations from this node to a target node
-	 * @param relation relation conceptType to be checked
+	 * @param relationType relation conceptType to be checked
 	 * @param destinationNode target node
 	 * @return a relation
 	 */
-	public PlausibleStatement findRelationToTarget(Node relation, Node destinationNode)
+	public PlausibleStatement findRelationToTarget(Node relationType, Node destinationNode)
 	{
 		OutLinkElement OutLink = _lastOutLink;
 
@@ -994,34 +994,7 @@ public class Node implements Comparable<Node>
 		{
 			if (OutLink.destinationNode == destinationNode)
 			{
-				if (OutLink.relation.relationType == relation)
-				{
-					return OutLink.relation;
-				}
-			}
-
-			OutLink = OutLink.previousOutLinkElement;
-		}
-		
-		return null;
-	}
-
-	
-	/**
-	 * finds relations from this node to a target node
-	 * @param relation relation conceptType to be checked
-	 * @param destinationNode target node
-	 * @return a relation
-	 */
-	public PlausibleStatement findRelationToTarget2(Node relation, Node destinationNode)
-	{
-		OutLinkElement OutLink = _lastOutLink;
-
-		while (OutLink != null)
-		{
-			if (OutLink.destinationNode == destinationNode)
-			{
-				if (OutLink.relation == relation)
+				if (OutLink.relation.relationType == relationType)
 				{
 					return OutLink.relation;
 				}
@@ -1036,11 +1009,11 @@ public class Node implements Comparable<Node>
 	
 	/**
 	 * Finds the relation this node receives from <code>sourceNode</code>
-	 * @param relation relation
+	 * @param relationType relation
 	 * @param sourceNode the souce of the relation
 	 * @return the found relation
 	 */
-	public PlausibleStatement findRelationFromSource(Node relation, Node sourceNode)
+	public PlausibleStatement findRelationFromSource(Node relationType, Node sourceNode)
 	{
 		InLinkElement inLink = _lastInLink;
 
@@ -1048,7 +1021,7 @@ public class Node implements Comparable<Node>
 		{
 			if (inLink.sourceNode == sourceNode)
 			{
-				if (inLink.relation.relationType == relation)
+				if (inLink.relation.relationType == relationType)
 				{
 					return inLink.relation;
 				}
