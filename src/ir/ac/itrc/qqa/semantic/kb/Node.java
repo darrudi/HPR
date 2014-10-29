@@ -277,6 +277,10 @@ public class Node implements Comparable<Node>
 		else if (name.indexOf('§') != -1)
 		{
 			this._lexicalType = LexicalType.SYNSET;
+			
+			//TODO: this line is added by hashemi
+			this.setPos(Common.convertSingleCharStringToPosForSynSet(name));
+			
 			// TODO: what about pos tags? how to make them persistent along with the node info?
 		}
 		
@@ -2010,11 +2014,15 @@ public class Node implements Comparable<Node>
 	 * this method returns the Synset node which originalNode has SYN relation with, 
 	 * if not found searches for Synset node which originalNode has SIM relation with,
 	 * if not found return null.
+	 * if the Node itself is SynSet, this will be returned.
 	 * 
 	 * @param originalNode
 	 * @return
 	 */
 	public Node getSynSet(){
+		
+		if(getLexicalType() == LexicalType.SYNSET)
+			return this;
 				
 		ArrayList<PlausibleAnswer> answers = findTargetNodes(KnowledgeBase.HPR_SYN);
 				
