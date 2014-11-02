@@ -2043,6 +2043,7 @@ public class Node implements Comparable<Node>
 	}
 	/**
 	 * if _name of this node exists in CONTEXT enum, it is a context node.
+	 * TODO: we can change the logic and assess if the node ISA همبافت then return true!
 	 * @return
 	 */
 	public boolean isContextNode(){
@@ -2096,5 +2097,12 @@ public class Node implements Comparable<Node>
 				cxs.add(out);		
 		
 		return cxs;
+	}
+	
+	public ArrayList<PlausibleStatement> getMozaf(Node mozaf_roof){		
+		
+		ArrayList<PlausibleStatement> mozaf_rels = findOutRelations(mozaf_roof);
+		
+		return mozaf_rels;
 	}
 }
