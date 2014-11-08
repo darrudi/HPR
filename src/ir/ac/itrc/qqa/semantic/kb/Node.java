@@ -2099,9 +2099,9 @@ public class Node implements Comparable<Node>
 		return cxs;
 	}
 	
-	public ArrayList<PlausibleStatement> getMozaf(Node mozaf_roof){		
+	public ArrayList<PlausibleStatement> getMozaf(Node mozaf_root){		
 		
-		ArrayList<PlausibleStatement> mozaf_rels = findOutRelations(mozaf_roof);
+		ArrayList<PlausibleStatement> mozaf_rels = findOutRelations(mozaf_root);
 		
 		return mozaf_rels;
 	}
