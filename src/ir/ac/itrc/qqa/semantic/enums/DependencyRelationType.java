@@ -48,5 +48,13 @@ public enum DependencyRelationType
 	VPP,
 	VPRT,
 	
-	ANY
+	ANY;
+	
+	public static DependencyRelationType fromString(String syntaxTag){
+		if (syntaxTag != null)
+			for (DependencyRelationType depRel : DependencyRelationType.values()) 
+				if (syntaxTag.equalsIgnoreCase(depRel.name())) 
+					return depRel;
+       return null;
+	}
 }
