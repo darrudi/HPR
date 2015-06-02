@@ -1398,7 +1398,7 @@ public class KnowledgeBase
 
 			CP = new CertaintyParameters(Parameters);
 
-			if (relation == "IMP" && source.indexOf("=") != -1 && target.indexOf("=") != -1)
+			if (relation.equals("IMP") && source.indexOf("=") != -1 && target.indexOf("=") != -1)
 			{
 				ps = addImplicationFromSplit(Split, CP);
 				
@@ -1501,8 +1501,8 @@ public class KnowledgeBase
 	 */
 	private String[] splitStatement(String snippet)
 	{
-		String Delimiter1 = "(";
-		String Delimiter2 = ")";
+		String Delimiter1 = "\\(";
+		String Delimiter2 = "\\)";
 
 		String[] Split;
 		String[] SplittedStatemnet = new String[3];
