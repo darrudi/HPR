@@ -1120,7 +1120,7 @@ public class Node implements Comparable<Node>
 		
 		while (outLink != null)
 		{
-			if ((outLink.relation.relationType == relationType || relationType == KnowledgeBase.HPR_ANY) && outLink.relation.conditionalType == statType)
+			if ((outLink.relation.relationType == relationType || relationType == KnowledgeBase.HPR_ANY))//TODO: hashemi commented temporarily: && outLink.relation.conditionalType == statType)
 			{
 				answer = new PlausibleAnswer();
 				
