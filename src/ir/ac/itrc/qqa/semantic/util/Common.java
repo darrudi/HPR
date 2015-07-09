@@ -314,6 +314,32 @@ public class Common
 	}
 	
 	/**
+	 * Determines the POS tag of a synSet based on special characters ('§' delimiter) in it.
+	 * @param synSet The word to be processed
+	 * @return The part-of-speech tag
+	 */
+	public static POS convertSingleCharStringToPosForSynSet(String synSet)
+	{
+		int index = synSet.indexOf("§");
+		
+		if (index == synSet.length() - 1)
+			return POS.ANY;
+		
+		switch (synSet.charAt(index + 1))
+		{
+			case 'n' : return POS.NOUN;	// noun
+			case 'v' : return POS.VERB;	// verb
+			case 'a' : return POS.ADJECTIVE;	// adjective
+			case 'r' : return POS.ADVERB;	// adverb
+			case 's' : return POS.SETELLITE_ADJECTIVE;	// Satellite adjective
+			case 'u' : return POS.ANY;	// Unknown
+			default  : MyError.exit("Invalid POS character!");
+		}
+		
+		return POS.ANY;
+	}
+	
+	/**
 	 * Maps the POS tags from strings to <code>POS</code> class 
 	 * @param str String representation of a POS
 	 * @return the POS-class mapped pos

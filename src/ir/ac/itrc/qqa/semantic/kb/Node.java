@@ -7,6 +7,8 @@
 
 package ir.ac.itrc.qqa.semantic.kb;
 
+
+import ir.ac.itrc.qqa.semantic.enums.CONTEXT;
 import ir.ac.itrc.qqa.semantic.enums.LexicalType;
 import ir.ac.itrc.qqa.semantic.enums.ConceptType;
 import ir.ac.itrc.qqa.semantic.enums.SourceType;
@@ -26,6 +28,8 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import sun.net.www.content.text.plain;
+import sun.security.util.Length;
 import edu.uci.ics.jung.graph.DirectedSparseGraph;
 import edu.uci.ics.jung.graph.util.EdgeType;
 
@@ -168,6 +172,11 @@ public class Node implements Comparable<Node>
 		// This constructor is called only by PlausibleStatement (a child of this class)
 		
 		Integer id = template.getNextInstanceId();
+		
+		
+		//------------- added by hashemi ------------------
+		extractPropertiesFromName(template._name);
+		//------------- added by hashemi ------------------
 
 		//TODO: in Node constructor check to see if the name starts with '*' and change it if so.
 		_name = "*" + template._name + " (" + id.toString() + ")";
@@ -268,6 +277,10 @@ public class Node implements Comparable<Node>
 		else if (name.indexOf('§') != -1)
 		{
 			this._lexicalType = LexicalType.SYNSET;
+			
+			//TODO: this line is added by hashemi
+			this.setPos(Common.convertSingleCharStringToPosForSynSet(name));
+			
 			// TODO: what about pos tags? how to make them persistent along with the node info?
 		}
 		
@@ -282,6 +295,7 @@ public class Node implements Comparable<Node>
 				case 'h': this._source = SourceType.FARHANG_QURAN; break;
 				case 'n': this._source = SourceType.TAFSIR_NEMOONE; break;
 				case 't': this._source = SourceType.TEBYAN; break;
+				case 's': this._source = SourceType.TTS; break;
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 			
@@ -315,6 +329,7 @@ public class Node implements Comparable<Node>
 				case 'h': break;
 				case 'n': break;
 				case 't': break;
+				case 's': break;
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 			
@@ -344,6 +359,7 @@ public class Node implements Comparable<Node>
 				case 'n': return SourceType.TAFSIR_NEMOONE;
 				case 'h': return SourceType.FARHANG_QURAN;
 				case 't': return SourceType.TEBYAN;
+				case 's': return SourceType.TTS;											
 				default	: MyError.exit("Bad resource descriptor in concept name!");
 			}
 		}
@@ -970,11 +986,11 @@ public class Node implements Comparable<Node>
 
 	/**
 	 * finds relations from this node to a target node
-	 * @param relation relation conceptType to be checked
+	 * @param relationType relation conceptType to be checked
 	 * @param destinationNode target node
 	 * @return a relation
 	 */
-	public PlausibleStatement findRelationToTarget(Node relation, Node destinationNode)
+	public PlausibleStatement findRelationToTarget(Node relationType, Node destinationNode)
 	{
 		OutLinkElement OutLink = _lastOutLink;
 
@@ -982,7 +998,7 @@ public class Node implements Comparable<Node>
 		{
 			if (OutLink.destinationNode == destinationNode)
 			{
-				if (OutLink.relation.relationType == relation)
+				if (OutLink.relation.relationType == relationType)
 				{
 					return OutLink.relation;
 				}
@@ -993,14 +1009,15 @@ public class Node implements Comparable<Node>
 		
 		return null;
 	}
+
 	
 	/**
 	 * Finds the relation this node receives from <code>sourceNode</code>
-	 * @param relation relation
+	 * @param relationType relation
 	 * @param sourceNode the souce of the relation
 	 * @return the found relation
 	 */
-	public PlausibleStatement findRelationFromSource(Node relation, Node sourceNode)
+	public PlausibleStatement findRelationFromSource(Node relationType, Node sourceNode)
 	{
 		InLinkElement inLink = _lastInLink;
 
@@ -1008,7 +1025,7 @@ public class Node implements Comparable<Node>
 		{
 			if (inLink.sourceNode == sourceNode)
 			{
-				if (inLink.relation.relationType == relation)
+				if (inLink.relation.relationType == relationType)
 				{
 					return inLink.relation;
 				}
@@ -1103,7 +1120,7 @@ public class Node implements Comparable<Node>
 		
 		while (outLink != null)
 		{
-			if ((outLink.relation.relationType == relationType || relationType == KnowledgeBase.HPR_ANY) && outLink.relation.conditionalType == statType)
+			if ((outLink.relation.relationType == relationType || relationType == KnowledgeBase.HPR_ANY))//TODO: hashemi commented temporarily: && outLink.relation.conditionalType == statType)
 			{
 				answer = new PlausibleAnswer();
 				
@@ -1990,5 +2007,102 @@ public class Node implements Comparable<Node>
 	public int getAccessed()
 	{
 		return _accessed;
+	}
+	
+
+	/**
+	 * this method returns the Synset node which originalNode has SYN relation with, 
+	 * if not found searches for Synset node which originalNode has SIM relation with,
+	 * if not found return null.
+	 * if the Node itself is SynSet, this will be returned.
+	 * 
+	 * @param originalNode
+	 * @return
+	 */
+	public Node getSynSet(){
+		
+		if(getLexicalType() == LexicalType.SYNSET)
+			return this;
+				
+		ArrayList<PlausibleAnswer> answers = findTargetNodes(KnowledgeBase.HPR_SYN);
+				
+		for (PlausibleAnswer answer: answers)
+			if(answer.answer != null)
+				return answer.answer;
+		
+		answers = findTargetNodes(KnowledgeBase.HPR_SIM);
+		
+		for (PlausibleAnswer answer: answers){
+			Node found = answer.answer;
+			if(found != null)
+				if(found.getLexicalType() == LexicalType.SYNSET)
+					return found;
+		}
+		MyError.error(this + " node has no SynSet nor SIMs to any SynSet, it is a bug in kb!");
+		return null;
+	}
+	/**
+	 * if _name of this node exists in CONTEXT enum, it is a context node.
+	 * TODO: we can change the logic and assess if the node ISA همبافت then return true!
+	 * @return
+	 */
+	public boolean isContextNode(){
+		try{
+			String cxName = "";
+			int index = _name.indexOf("CX:");
+			if(index != -1)
+				if((index + 3) < _name.length())
+					cxName = _name.substring(index + 3);
+			CONTEXT.valueOf(cxName);
+			return true;
+		}
+		catch(Exception e){
+			return false;
+		}			
+	}
+	
+	/**
+	 * if this node isContextNode, returns the pure name of context, means "CX:" extracted!
+	 * @return
+	 */
+	public String getContextName(){
+		if(!isContextNode()){
+			MyError.error("this " + this + " node is not a context!");
+			return null;
+		}
+		String cxName = _name;
+		int index = _name.indexOf("CX:");
+		if(index != -1)
+			if((index + 3) < _name.length())
+				cxName = _name.substring(index + 3);		
+		return cxName;
+					
+	}
+	
+	
+	/**
+	 * this methods return all relation of this node with relationType of CONTEXT.
+	 * 
+	 * @param originalNode
+	 * @return
+	 */
+	public ArrayList<PlausibleStatement> loadCXs(){
+		
+		ArrayList<PlausibleStatement> outs = findOutRelations(KnowledgeBase.HPR_ANY);
+		
+		ArrayList<PlausibleStatement> cxs = new ArrayList<PlausibleStatement>();
+		
+		for(PlausibleStatement out:outs)			
+			if(out.relationType != null && out.relationType.isContextNode())
+				cxs.add(out);		
+		
+		return cxs;
+	}
+	
+	public ArrayList<PlausibleStatement> getMozaf(Node mozaf_root){		
+		
+		ArrayList<PlausibleStatement> mozaf_rels = findOutRelations(mozaf_root);
+		
+		return mozaf_rels;
 	}
 }

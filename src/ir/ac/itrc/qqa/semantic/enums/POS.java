@@ -19,6 +19,14 @@ public enum POS
 	SETELLITE_ADJECTIVE,
 	ADVERB,
 	ANY,
-	UNKNOWN					// other categories such as CONJ, PREP, etc
+	UNKNOWN;					// other categories such as CONJ, PREP, etc
+	
+	public static POS fromString(String posTag){
+		if (posTag != null)
+			for (POS pos : POS.values()) 
+				if (posTag.equalsIgnoreCase(pos.name())) 
+					return pos;
+       return null;
+	}
 }
 

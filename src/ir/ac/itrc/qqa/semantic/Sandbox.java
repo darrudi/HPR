@@ -20,17 +20,21 @@ public class Sandbox
 	{
 		KnowledgeBase kb = new KnowledgeBase();
 		kb.importKb("cache/kb/farsnet.txt");
+		//kb.importKb("cache/kb/testKB.txt");
+		kb.importKb("cache/kb/farsnet--6.txt");
 		
 		SemanticReasoner sr = new SemanticReasoner(kb, ExecutionMode.RELEASE);
 
 		//Setting the max reasoning depth: important!
-		sr.setMaxReasoningDepth(15);
+		sr.setMaxReasoningDepth(5);//15);
 		sr.setMaximumAnswers(1);
 		
 		PlausibleQuestion pq = new PlausibleQuestion();
-		pq.argument = kb.addConcept("پسر بچه");
-		pq.referent = kb.addConcept("نفر");
+		pq.argument = kb.addConcept("کبوتر#n1");
+		//pq.argument = kb.addConcept("پسر بچه#n1");
+		pq.referent = kb.addConcept("جانور§n-12239");
 		pq.descriptor = KnowledgeBase.HPR_ISA;
+		//pq.descriptor = kb.addConcept("راهنما");
 
 //		pq.argument = kb.addConcept("پسر بچه");
 //		pq.referent = kb.addConcept("بچه");

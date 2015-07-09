@@ -385,6 +385,7 @@ public class SemanticReasoner
 			//											- 4c4) CX:Location = {location}?
 						
 			answers = RecallCXs(pq, Function);
+//			answers = RecallCXs2(pq, Function);
 		}
 		else //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 		{
@@ -590,25 +591,26 @@ public class SemanticReasoner
 		//											- 4c2) CX:Location = {?}
 		//											- 4c3) CX:TIME = {time}?
 		//											- 4c4) CX:Location = {location}?
-					
+		
+		//it should not come here!
 		if (pq.referent == KnowledgeBase.HPR_ANY) // 4a
 		{			
 			PSs = pq.argument.findOutRelations(pq.descriptor);
-		}
+		}//it should not come here!
 		else if (pq.argument == KnowledgeBase.HPR_ANY) // 4b
 		{
 			PSs = pq.referent.findInRelations(pq.descriptor);
-		}
+		}//it just enters this part!
 		else // 4c
 		{
-			PlausibleStatement ps = pq.argument.findRelationToTarget(pq.descriptor, pq.referent);
+			PlausibleStatement ps = pq.argument.findRelationToTarget(pq.descriptor, pq.referent);			
 			
 			if (ps != null)
 			{
 				PSs.add(ps);
 			}
 		}
-		
+		//TODO: what happens if both pq.cxTime and pq.cxLocation were not HPR_ANY 
 		if (pq.cxTime != KnowledgeBase.HPR_ANY) // 4x1, 4x3
 		{
 			cx = KnowledgeBase.HPR_CXTIME;
@@ -665,6 +667,7 @@ public class SemanticReasoner
 		
 		return Answers;
 	}
+	
 	
 	/**
 	 * argument Generalization Inference

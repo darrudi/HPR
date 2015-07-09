@@ -77,5 +77,21 @@ public class MyError
 		
 		System.exit(-1);
 	}
+	
+	/**
+	 * prints the provided message and exits
+	 * @param msg message to be printed
+	 */
+	public static void error(String message)
+	{
+		try 
+		{
+			throw new Exception("\r\n" + message);
+		} 
+		catch (Exception e) {
+			e.printStackTrace();
+		}		
+		//System.exit(-1);
+	}
 }
 

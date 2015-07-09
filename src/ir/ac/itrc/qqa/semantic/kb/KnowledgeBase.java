@@ -443,14 +443,17 @@ public class KnowledgeBase
 		
 		if (isInMemory(searchName)) 
 		{
-			Node already = (Node)_nodes.get(searchName.toLowerCase());
 			
+			Node already = (Node)_nodes.get(searchName.toLowerCase());
+						
+			System.out.println("isInMemory: " + searchName);
+						
 			if (_overrideSourceTypeOnAddition && source != SourceType.UNKNOWN)
 				already.setSourceType(source);
 			
 			return already;
 		}
-		
+		System.out.println("is Not InMemory: " + searchName);
 		// Tashdid _ّ__ character is a special case. many concepts names in Farsi and Arabic can be written with or without it.
 		// so we do not add a new concept when the Tashdid-less version already exists in the kb.
 		// dictionary entries (having '#' in their names) are excempt from this extra check.
@@ -1395,7 +1398,7 @@ public class KnowledgeBase
 
 			CP = new CertaintyParameters(Parameters);
 
-			if (relation == "IMP" && source.indexOf("=") != -1 && target.indexOf("=") != -1)
+			if (relation.equals("IMP") && source.indexOf("=") != -1 && target.indexOf("=") != -1)
 			{
 				ps = addImplicationFromSplit(Split, CP);
 				
@@ -1498,8 +1501,8 @@ public class KnowledgeBase
 	 */
 	private String[] splitStatement(String snippet)
 	{
-		String Delimiter1 = "(";
-		String Delimiter2 = ")";
+		String Delimiter1 = "\\(";
+		String Delimiter2 = "\\)";
 
 		String[] Split;
 		String[] SplittedStatemnet = new String[3];
